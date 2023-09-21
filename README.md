@@ -24,7 +24,6 @@ The driver is under development and iteration.
 | get_interfaces_ip()|  Get interface IP information |
 | get_vlans() | Get vlan information |
 
-
 ### Config
 
 | API   | Description  |
@@ -34,15 +33,15 @@ The driver is under development and iteration.
 ### Other tools
 | API   | Description  |
 |--------|-----|
-| is_active() |  Not implemented |
-| ping() | Not implemented |
-
+|  |  |
+|  |  |
 
 ### Plans to develop
 
 * proper device and auxiliary methods (send_command(), write_channel(), send_config_set(), find_prompt(), etc)
 * is_active()
 * ping()
+* other getters
 
 ## Quick start
 
@@ -51,9 +50,7 @@ Make sure to configure environment variables for LDAP user and password, else yo
 ```python
 
 from napalm import get_network_driver
-from napalm import get_network_driver
 from os import getenv
-
 
 if True:
     LDAP_username = getenv("LDAP_username")
