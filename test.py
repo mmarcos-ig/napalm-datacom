@@ -19,7 +19,7 @@ if True:
     vlans1 = CNF2_ASW1.get_vlans()
     vlans2 = CNF2_ASW1.get_vlans_membership()
 
-if False:
+if True:
     driver = get_network_driver("ios")
     BUE3_AR1 = driver("172.21.4.66", LDAP_username, LDAP_password)
 
