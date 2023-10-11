@@ -44,8 +44,6 @@ from napalm.base.exceptions import (
 #     CommandErrorException,
 # )
 
-import paramiko as pm
-from time import time, sleep
 from re import findall, search, sub
 
 HOUR_SECONDS = 3600
