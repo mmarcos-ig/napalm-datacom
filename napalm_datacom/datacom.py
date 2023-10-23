@@ -86,11 +86,31 @@ class DatacomDriver(NetworkDriver):
         device_type = "datacom_os"
         if self.transport == "telnet":
             device_type = "datacom_os_telnet"
-        self.device = self._netmiko_open_ign(
+        self.device = self._netmiko_open__(
             device_type, netmiko_optional_args=self.netmiko_optional_args
         )
 
-    def _netmiko_open_ign(
+    def _netmiko_open__(
+        self, device_type: str, netmiko_optional_args: Optional[Dict] = None
+    ) -> ConnectHandler:
+        """Standardized method of creating a Netmiko connection using napalm attributes."""
+        if netmiko_optional_args is None:
+            netmiko_optional_args = {}
+        try:
+            self._netmiko_device = ConnectHandler(
+                device_type=device_type,
+                host=self.hostname,
+                username=self.username,
+                password=self.password,
+                timeout=self.timeout,
+                **netmiko_optional_args
+            )
+        except NetMikoTimeoutException:
+            raise ConnectionException("Cannot connect to {}".format(self.hostname))
+
+        return self._netmiko_device
+    
+    def _netmiko_close__(
         self, device_type: str, netmiko_optional_args: Optional[Dict] = None
     ) -> ConnectHandler:
         """Standardized method of creating a Netmiko connection using napalm attributes."""
@@ -128,7 +148,7 @@ class DatacomDriver(NetworkDriver):
 
     def close(self):
         """Close the connection to the device"""
-        self.device.close()
+        self._netmiko_device.disconnect()
         pass
 
     @staticmethod

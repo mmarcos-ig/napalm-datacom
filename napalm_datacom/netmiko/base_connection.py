@@ -63,13 +63,14 @@ class BaseConnection:
     def disconnect(self) -> None:
         """Try to gracefully close the session."""
         try:
-            if self.protocol == "ssh":
+            if self.protocol == "SSH":
                 self.paramiko_cleanup()
         except Exception:
             # There have been race conditions observed on disconnect.
             pass
         finally:
             self.SSH_shell = None
+            self.channel = None
 
     def establish_connection(self) -> None:
         self.channel: Channel
