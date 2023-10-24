@@ -25,4 +25,7 @@ setup(
     url="https://github.com/mmarcos-ig/ign-napalm-datacom",
     include_package_data=True,
     install_requires=reqs,
+    package_data={
+        'napalm_datacom': ['netmiko/*', 'netmiko/datacom/*'],  # Include specific directories and their contents
+    },
 )
