@@ -1,3 +1,6 @@
 include requirements.txt
 include napalm_datacom/templates/*.j2
 include napalm_datacom/utils/textfsm_templates/*.tpl
+
+include napalm_datacom/napalm_datacom/netmiko/*.py
+include napalm_datacom/napalm_datacom/netmiko/datacom/*.py
