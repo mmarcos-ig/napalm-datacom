@@ -194,12 +194,9 @@ class BaseConnection:
     def _test_channel_read(self):
         pass
 
-    def send_command(self, command_string, expect_string = None, loop_delay = 0.5, verbose=False):
-        if verbose:
-            print(f"Command String -> {command_string}")
+    def send_command(self, command_string, expect_string = None, loop_delay = 0.5):
 
         data = ""
-        k = 0
 
         if expect_string is not None:
             search_pattern = expect_string
@@ -213,31 +210,21 @@ class BaseConnection:
         while not self.SSH_shell.recv_ready():
             pass
 
-        if verbose:
-            print("    1. Sending... ")
-
         while time.time() - start_time <= self.timeout:
 
             new_data = self.SSH_shell.recv(65535).decode('utf-8')
 
-            if "--More--" in new_data or "(END)" in new_data:
-                if verbose:
-                    print("    <--More--> or <(END)> in Response.")
+            if "--More--" in new_data:
                 self.SSH_shell.send(" ")
 
                 while not self.SSH_shell.recv_ready():
                     pass
-                    
-            if verbose:
-                print(f"    2. Received. (k={k})")
-                p = new_data[-100:].replace("\r","").replace("\n",""); print(f"        ... {p}")
 
             data += new_data
 
-            if len(findall("\S+\s*"+search_pattern+"\s*", new_data)) > 0:
+            if len(findall("\S+\s*"+search_pattern, new_data)) > 0:
                 break
 
-            k += 1
             time.sleep(loop_delay)
 
         return data
