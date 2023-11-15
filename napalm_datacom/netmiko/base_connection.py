@@ -20,6 +20,7 @@ class BaseConnection:
         host: str = "",
         username: str = "",
         password: str = "",
+        secret: str ="",
         port: int = 22,
         device_type: str = "Datacom",
         protocol: str = "SSH",
@@ -44,6 +45,7 @@ class BaseConnection:
 
         self.username = username
         self.password = password
+        self.secret = secret
 
         self.protocol = protocol
         self.auto_connect = auto_connect
@@ -192,9 +194,12 @@ class BaseConnection:
     def _test_channel_read(self):
         pass
 
-    def send_command(self, command_string, expect_string = None, loop_delay = 0.5):
+    def send_command(self, command_string, expect_string = None, loop_delay = 0.5, verbose=False):
+        if verbose:
+            print(f"Command String -> {command_string}")
 
         data = ""
+        k = 0
 
         if expect_string is not None:
             search_pattern = expect_string
@@ -208,58 +213,34 @@ class BaseConnection:
         while not self.SSH_shell.recv_ready():
             pass
 
+        if verbose:
+            print("    1. Sending... ")
+
         while time.time() - start_time <= self.timeout:
 
             new_data = self.SSH_shell.recv(65535).decode('utf-8')
 
-            if "--More--" in new_data:
+            if "--More--" in new_data or "(END)" in new_data:
+                if verbose:
+                    print("    <--More--> or <(END)> in Response.")
                 self.SSH_shell.send(" ")
 
                 while not self.SSH_shell.recv_ready():
                     pass
+                    
+            if verbose:
+                print(f"    2. Received. (k={k})")
+                p = new_data[-100:].replace("\r","").replace("\n",""); print(f"        ... {p}")
 
             data += new_data
 
-            if len(findall("\S+\s*"+search_pattern, new_data)) > 0:
+            if len(findall("\S+\s*"+search_pattern+"\s*", new_data)) > 0:
                 break
 
+            k += 1
             time.sleep(loop_delay)
 
         return data
-
-
-    if False:
-        pass
-        def cli(self, command):
-            """ Run singlecommand in Datacom paramiko connection"""
-
-            cli_output = ""
-            n = 0
-
-            self.device.send(command)
-
-            while not self.device.recv_ready():
-                pass
-            
-            while n < self.timeout*2:
-
-                cli_output += self.device.recv(65535).decode('utf-8')
-
-                if "--More--" in cli_output:
-                    self.device.send(" ")
-
-                    while not self.device.recv_ready():
-                        pass
-
-                sleep(0.5)
-                n+=1
-
-                if len(findall("\S+\s*"+self.prompt, cli_output)) > 0:
-                    break
-
-            cli_output = sub("--More--\s*", "", cli_output)
-
-            return cli_output
 
     def paramiko_cleanup(self) -> None:
         """Cleanup Paramiko to try to gracefully handle SSH session ending."""
