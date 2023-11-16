@@ -197,6 +197,7 @@ class BaseConnection:
     def send_command(self, command_string, expect_string = None, loop_delay = 0.5):
 
         data = ""
+        valid_data = False
 
         if expect_string is not None:
             search_pattern = expect_string
@@ -214,7 +215,11 @@ class BaseConnection:
 
             new_data = self.SSH_shell.recv(65535).decode('utf-8')
 
-            if "--More--" in new_data:
+            if not valid_data:
+                if new_data.replace(command_string,"").replace(search_pattern,"").strip() != "":
+                    valid_data = True
+
+            if "--More--" in new_data or "(END)" in new_data:
                 self.SSH_shell.send(" ")
 
                 while not self.SSH_shell.recv_ready():
@@ -222,7 +227,7 @@ class BaseConnection:
 
             data += new_data
 
-            if len(findall("\S+\s*"+search_pattern, new_data)) > 0:
+            if valid_data and search_pattern in new_data:
                 break
 
             time.sleep(loop_delay)
