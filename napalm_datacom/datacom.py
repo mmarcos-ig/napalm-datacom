@@ -267,6 +267,9 @@ class DatacomDriver(NetworkDriver):
         }
 
         """
+
+        shipintregex = r"\s*VLAN:\s+(\d+)\s+\[([\w-]+)\]\s+.+\s+Status\s"
+        shipintregex += r"+Admin:\s+(\w+)\s+Oper:\s+(\w+)\s+.+\s+.+\s.+\s+.+MTU:\s+(\d+)"
     
         interfaces = {}
 
@@ -296,6 +299,23 @@ class DatacomDriver(NetworkDriver):
                     interfaces[id]['speed'] = field.split("Speed-duplex:")[1].strip()
             interfaces[id]['mtu'] = [field.split("MTU:")[1].strip() for field in fields_b if "MTU" in field]
             interfaces[id]['mtu'] = int(interfaces[id]['mtu'][0].split(" ")[0]) if len(interfaces[id]['mtu']) > 0 else ""
+
+        c = self._send_command("sh ip int\n")
+
+        c = findall("(\w+\s\d+)\s+\d+\.\d+\.\d+\.\d+/\d+", c)
+
+        for x in c:
+            d = self._send_command(f"show vlan id {x.split(' ')[1]}\n")
+            if "IP Address" in d:
+                e = findall(shipintregex, d)
+                if e:
+                    e = e[0]
+                    id = f"Vlan {e[0]}"
+                    interfaces[id]={"last_flapped":-1, "speed":-1}
+                    interfaces[id]['is_enabled'] = True if "Enabled" in e[2] else False
+                    interfaces[id]['is_up'] = True if "Up" in e[3] else False
+                    interfaces[id]['description'] = e[1]
+                    interfaces[id]['mtu'] = int(e[4])
 
         return interfaces
 
@@ -335,9 +355,10 @@ class DatacomDriver(NetworkDriver):
         a = [[y.strip() for y in x.split("  ") if y.strip() not in ["", None]] for x in a]
 
         for x in a:
-            interfaces_ip[x[0]] = {}
-            interfaces_ip[x[0]]["ipv4"] = {}
-            interfaces_ip[x[0]]["ipv4"][x[1].split("/")[0]] = {"prefix_length": x[1].split("/")[1]}
+            id = x[0].capitalize()
+            interfaces_ip[id] = {}
+            interfaces_ip[id]["ipv4"] = {}
+            interfaces_ip[id]["ipv4"][x[1].split("/")[0]] = {"prefix_length": x[1].split("/")[1]}
 
         a = self._send_command("sh ipv6 int\n")
 
@@ -345,9 +366,10 @@ class DatacomDriver(NetworkDriver):
         a = [[y.strip() for y in x.split("  ") if y.strip() not in ["", None]] for x in a]
 
         for x in a:
-            interfaces_ip[x[0]] = {}
-            interfaces_ip[x[0]]["ipv6"] = {}
-            interfaces_ip[x[0]]["ipv6"][x[2].split("::")[0]] = {"prefix_length": x[2].split("::")[1]}
+            id = x[0].capitalize()
+            interfaces_ip[id] = {}
+            interfaces_ip[id]["ipv6"] = {}
+            interfaces_ip[id]["ipv6"][x[2].split("::")[0]] = {"prefix_length": x[2].split("::")[1]}
 
         return interfaces_ip
 
