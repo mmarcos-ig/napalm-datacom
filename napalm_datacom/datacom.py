@@ -487,8 +487,10 @@ class DatacomDriver(NetworkDriver):
                     membership_pl = y[0][0]
                     ll = int(d[0].split("/")[1])
                     ul = int(d[1].split("/")[1])
+                    e = findall("([a-zA-Z]+)(\d+)/", d[0])
+                    e = e[0] if len(e) else (d[0].split("/")[0], 0)
 
-                    b[-1]['ports'].extend( [f"{membership_pl}|{d[0].split('/')[0]}/{v}" for v in range(ll,ul+1)] )
+                    b[-1]['ports'].extend( [f"{membership_pl}|{e[0]} {e[1]}/{v}" for v in range(ll,ul+1)] )
 
         vlans = {}
 
