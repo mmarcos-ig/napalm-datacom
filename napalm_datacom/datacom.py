@@ -460,8 +460,6 @@ class DatacomDriver(NetworkDriver):
         }
         """
 
-        interfaces = {}
-
         a = self._send_command("sh vlan summary id all\n")
         a = [x for x in a.split("\n")]
         b = []
@@ -480,8 +478,12 @@ class DatacomDriver(NetworkDriver):
 
             if len(b)>0:
 
-                b[-1]['ports'].extend([f"{u[0]}|{u[2:-1]}" for u in single_ports])
-                    
+                for u in single_ports:
+                    e = findall("([a-zA-Z])\(([a-zA-Z]+)(\d+)/(\d+)\)", u)
+                    e = e[0] if len(e) else ("","",0,0)
+                    b[-1]['ports'].append(f"{e[0]}|{e[1]} {e[2]}/{e[3]}")
+
+
                 for y in port_lists:
                     d = [z.replace(")","") for z in y.split("(")[1].split(" to ")]
                     membership_pl = y[0][0]
@@ -491,6 +493,12 @@ class DatacomDriver(NetworkDriver):
                     e = e[0] if len(e) else (d[0].split("/")[0], 0)
 
                     b[-1]['ports'].extend( [f"{membership_pl}|{e[0]} {e[1]}/{v}" for v in range(ll,ul+1)] )
+
+                if False:
+                    print(f"Line: {o}")
+                    print(f"{b[-1]['name']} : {', '.join(b[-1]['ports'])}", end="")
+                    print(" -- ")
+
 
         vlans = {}
 
