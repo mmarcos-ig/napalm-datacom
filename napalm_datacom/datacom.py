@@ -222,7 +222,7 @@ class DatacomDriver(NetworkDriver):
         if len(b) > 0:
             facts['model'] = sub("\s+Model:\s+", "", b[0]).replace("\r","")
 
-        facts['hostname'] = self.device.prompt
+        facts['hostname'] = self.device.prompt.replace("#","")
 
         facts['fqdn'] = ""
 
